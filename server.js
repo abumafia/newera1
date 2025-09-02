@@ -5,6 +5,7 @@ const multer = require('multer');
 const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
+const cors = require("cors");
 const MongoStore = require('connect-mongo');
 
 const app = express();
@@ -110,6 +111,11 @@ app.use(session({
     ttl: 24 * 60 * 60 // 1 kun
   })
   }
+}));
+app.use(cors({
+  origin: "*",   // vaqtincha hammani ruxsat berish
+  methods: "GET,POST,PUT,DELETE",
+  credentials: true
 }));
 
 // Auth middleware
