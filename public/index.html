@@ -190,7 +190,7 @@
                 const media = document.getElementById('postMedia').value;
                 
                 try {
-                    const response = await fetch('/posts', {
+                    const response = await fetch('https://newera-9amu.onrender.com/posts', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -251,7 +251,7 @@
                 // Yangi timeout o'rnatish
                 searchTimeout = setTimeout(async () => {
                     try {
-                        const response = await fetch(`/search?q=${encodeURIComponent(query)}&type=quick`);
+                        const response = await fetch(`https://newera-9amu.onrender.com/search?q=${encodeURIComponent(query)}&type=quick`);
                         const data = await response.json();
                         
                         if (data.success) {
@@ -399,7 +399,7 @@
             }
             
             try {
-                const response = await fetch(`/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}`);
+                const response = await fetch(`https://newera-9amu.onrender.com/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -481,7 +481,7 @@
             }
             
             try {
-                const response = await fetch(`/posts?page=${currentPage}`);
+                const response = await fetch(`https://newera-9amu.onrender.com/posts?page=${currentPage}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -577,7 +577,7 @@
                     const postId = this.getAttribute('data-post-id');
                     
                     try {
-                        const response = await fetch(`/posts/${postId}/like`, {
+                        const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/like`, {
                             method: 'POST'
                         });
                         
@@ -616,7 +616,7 @@
                     const content = this.querySelector('input').value;
                     
                     try {
-                        const response = await fetch(`/posts/${postId}/comment`, {
+                        const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comment`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -753,7 +753,7 @@
                 const commentId = this.getAttribute('data-comment-id');
                 
                 try {
-                    const response = await fetch(`/posts/${postId}/comments/${commentId}/like`, {
+                    const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comments/${commentId}/like`, {
                         method: 'POST'
                     });
                     
@@ -789,7 +789,7 @@
                 const content = this.querySelector('input').value;
                 
                 try {
-                    const response = await fetch(`/posts/${postId}/comments/${commentId}/reply`, {
+                    const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comments/${commentId}/reply`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -841,7 +841,7 @@
                 
                 try {
                     // Bu endpoint serverda yozilishi kerak
-                    const response = await fetch(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`, {
+                    const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comments/${commentId}/replies/${replyId}/like`, {
                         method: 'POST'
                     });
                     
