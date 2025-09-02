@@ -119,7 +119,7 @@
 
         async function loadStats() {
             try {
-                const response = await fetch('/admin/stats');
+                const response = await fetch('https://newera-9amu.onrender.com/admin/stats');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -164,7 +164,7 @@
                             
                             if (confirmDelete) {
                                 try {
-                                    const response = await fetch(`/admin/users/${userId}`, {
+                                    const response = await fetch(`https://newera-9amu.onrender.com/admin/users/${userId}`, {
                                         method: 'DELETE'
                                     });
                                     
@@ -191,7 +191,7 @@
 
         async function loadUsers() {
             try {
-                const response = await fetch('/admin/users');
+                const response = await fetch('https://newera-9amu.onrender.com/admin/users');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -229,7 +229,7 @@
                             
                             if (confirmDelete) {
                                 try {
-                                    const response = await fetch(`/admin/users/${userId}`, {
+                                    const response = await fetch(`https://newera-9amu.onrender.com/admin/users/${userId}`, {
                                         method: 'DELETE'
                                     });
                                     
@@ -256,7 +256,7 @@
 
         async function loadPosts() {
             try {
-                const response = await fetch('/admin/posts');
+                const response = await fetch('https://newera-9amu.onrender.com/admin/posts');
                 const data = await response.json();
                 
                 if (data.success) {
@@ -290,7 +290,7 @@
                             
                             if (confirmDelete) {
                                 try {
-                                    const response = await fetch(`/admin/posts/${postId}`, {
+                                    const response = await fetch(`https://newera-9amu.onrender.com/admin/posts/${postId}`, {
                                         method: 'DELETE'
                                     });
                                     
