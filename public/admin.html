@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="text-xl font-bold">Admin Panel</div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-blue-500">Asosiy</a>
+                    <a href="/profile" class="text-gray-700 hover:text-blue-500">Profil</a>
+                    <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Chiqish</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-6xl mx-auto px-4 py-8">
+        <h1 class="text-2xl font-bold mb-6">Admin Statistikasi</h1>
+        
+        <!-- Statistikalar -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold mb-2">Foydalanuvchilar</h2>
+                <p id="userCount" class="text-3xl font-bold">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold mb-2">Postlar</h2>
+                <p id="postCount" class="text-3xl font-bold">0</p>
+            </div>
+            <div class="bg-white p-6 rounded-lg shadow-md">
+                <h2 class="text-lg font-semibold mb-2">Eng ko'p obunachilar</h2>
+                <p id="topUser" class="text-xl font-bold">-</p>
+            </div>
+        </div>
+        
+        <!-- Eng ko'p obunachiga ega foydalanuvchilar -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Eng ko'p obunachiga ega bo'lgan foydalanuvchilar</h2>
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2">Foydalanuvchi</th>
+                        <th class="text-left py-2">Obunachilar</th>
+                        <th class="text-left py-2">Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody id="topUsersTable">
+                    <!-- JavaScript orqali to'ldiriladi -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Foydalanuvchilarni boshqarish -->
+        <div class="bg-white p-6 rounded-lg shadow-md mb-8">
+            <h2 class="text-xl font-semibold mb-4">Foydalanuvchilarni boshqarish</h2>
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2">Foydalanuvchi</th>
+                        <th class="text-left py-2">Email</th>
+                        <th class="text-left py-2">Ro'yxatdan o'tgan sana</th>
+                        <th class="text-left py-2">Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody id="usersTable">
+                    <!-- JavaScript orqali to'ldiriladi -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Postlarni boshqarish -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+            <h2 class="text-xl font-semibold mb-4">Postlarni boshqarish</h2>
+            <table class="w-full">
+                <thead>
+                    <tr class="border-b">
+                        <th class="text-left py-2">Muallif</th>
+                        <th class="text-left py-2">Matn</th>
+                        <th class="text-left py-2">Sana</th>
+                        <th class="text-left py-2">Likelar</th>
+                        <th class="text-left py-2">Harakatlar</th>
+                    </tr>
+                </thead>
+                <tbody id="postsTable">
+                    <!-- JavaScript orqali to'ldiriladi -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Chiqish
+            document.getElementById('logoutBtn').addEventListener('click', async () => {
+                try {
+                    await fetch('/logout', { method: 'POST' });
+                    window.location.href = '/register-login.html';
+                } catch (error) {
+                    console.error('Chiqishda xatolik:', error);
+                }
+            });
+            
+            // Statistikani yuklash
+            loadStats();
+            
+            // Foydalanuvchilarni yuklash
+            loadUsers();
+            
+            // Postlarni yuklash
+            loadPosts();
+        });
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/admin/stats');
+                const data = await response.json();
+                
+                if (data.success) {
+                    document.getElementById('userCount').textContent = data.stats.userCount;
+                    document.getElementById('postCount').textContent = data.stats.postCount;
+                    
+                    if (data.stats.topUsers.length > 0) {
+                        document.getElementById('topUser').textContent = `${data.stats.topUsers[0].fullName} (${data.stats.topUsers[0].followersCount})`;
+                    }
+                    
+                    // Top foydalanuvchilar jadvali
+                    const topUsersTable = document.getElementById('topUsersTable');
+                    topUsersTable.innerHTML = '';
+                    
+                    data.stats.topUsers.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b';
+                        row.innerHTML = `
+                            <td class="py-2">
+                                <div class="flex items-center">
+                                    <img src="${user.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
+                                    <div>
+                                        <div class="font-semibold">${user.fullName}</div>
+                                        <div class="text-gray-500 text-sm">@${user.username}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-2">${user.followersCount}</td>
+                            <td class="py-2">
+                                <button class="text-red-500 text-sm delete-user-btn" data-user-id="${user._id}">O'chirish</button>
+                            </td>
+                        `;
+                        
+                        topUsersTable.appendChild(row);
+                    });
+                    
+                    // Foydalanuvchini o'chirish
+                    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                        btn.addEventListener('click', async function() {
+                            const userId = this.getAttribute('data-user-id');
+                            const confirmDelete = confirm('Foydalanuvchini o\'chirishni istaysizmi?');
+                            
+                            if (confirmDelete) {
+                                try {
+                                    const response = await fetch(`/admin/users/${userId}`, {
+                                        method: 'DELETE'
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        this.closest('tr').remove();
+                                        loadStats(); // Statistikani yangilash
+                                    } else {
+                                        alert('Foydalanuvchini o\'chirishda xatolik: ' + data.message);
+                                    }
+                                } catch (error) {
+                                    console.error('Xatolik:', error);
+                                    alert('Foydalanuvchini o\'chirishda xatolik');
+                                }
+                            }
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Statistikani yuklashda xatolik:', error);
+            }
+        }
+
+        async function loadUsers() {
+            try {
+                const response = await fetch('/admin/users');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const usersTable = document.getElementById('usersTable');
+                    usersTable.innerHTML = '';
+                    
+                    data.users.forEach(user => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b';
+                        row.innerHTML = `
+                            <td class="py-2">
+                                <div class="flex items-center">
+                                    <img src="${user.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
+                                    <div>
+                                        <div class="font-semibold">${user.fullName}</div>
+                                        <div class="text-gray-500 text-sm">@${user.username}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="py-2">${user.email}</td>
+                            <td class="py-2">${new Date(user.createdAt).toLocaleDateString()}</td>
+                            <td class="py-2">
+                                <button class="text-red-500 text-sm delete-user-btn" data-user-id="${user._id}">O'chirish</button>
+                            </td>
+                        `;
+                        
+                        usersTable.appendChild(row);
+                    });
+                    
+                    // Foydalanuvchini o'chirish
+                    document.querySelectorAll('.delete-user-btn').forEach(btn => {
+                        btn.addEventListener('click', async function() {
+                            const userId = this.getAttribute('data-user-id');
+                            const confirmDelete = confirm('Foydalanuvchini o\'chirishni istaysizmi?');
+                            
+                            if (confirmDelete) {
+                                try {
+                                    const response = await fetch(`/admin/users/${userId}`, {
+                                        method: 'DELETE'
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        this.closest('tr').remove();
+                                        loadStats(); // Statistikani yangilash
+                                    } else {
+                                        alert('Foydalanuvchini o\'chirishda xatolik: ' + data.message);
+                                    }
+                                } catch (error) {
+                                    console.error('Xatolik:', error);
+                                    alert('Foydalanuvchini o\'chirishda xatolik');
+                                }
+                            }
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Foydalanuvchilarni yuklashda xatolik:', error);
+            }
+        }
+
+        async function loadPosts() {
+            try {
+                const response = await fetch('/admin/posts');
+                const data = await response.json();
+                
+                if (data.success) {
+                    const postsTable = document.getElementById('postsTable');
+                    postsTable.innerHTML = '';
+                    
+                    data.posts.forEach(post => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b';
+                        row.innerHTML = `
+                            <td class="py-2">
+                                <div class="font-semibold">${post.userId.fullName}</div>
+                                <div class="text-gray-500 text-sm">@${post.userId.username}</div>
+                            </td>
+                            <td class="py-2">${post.content.length > 50 ? post.content.substring(0, 50) + '...' : post.content}</td>
+                            <td class="py-2">${new Date(post.createdAt).toLocaleDateString()}</td>
+                            <td class="py-2">${post.likes.length}</td>
+                            <td class="py-2">
+                                <button class="text-red-500 text-sm delete-post-btn" data-post-id="${post._id}">O'chirish</button>
+                            </td>
+                        `;
+                        
+                        postsTable.appendChild(row);
+                    });
+                    
+                    // Postni o'chirish
+                    document.querySelectorAll('.delete-post-btn').forEach(btn => {
+                        btn.addEventListener('click', async function() {
+                            const postId = this.getAttribute('data-post-id');
+                            const confirmDelete = confirm('Postni o\'chirishni istaysizmi?');
+                            
+                            if (confirmDelete) {
+                                try {
+                                    const response = await fetch(`/admin/posts/${postId}`, {
+                                        method: 'DELETE'
+                                    });
+                                    
+                                    const data = await response.json();
+                                    
+                                    if (data.success) {
+                                        this.closest('tr').remove();
+                                        loadStats(); // Statistikani yangilash
+                                    } else {
+                                        alert('Postni o\'chirishda xatolik: ' + data.message);
+                                    }
+                                } catch (error) {
+                                    console.error('Xatolik:', error);
+                                    alert('Postni o\'chirishda xatolik');
+                                }
+                            }
+                        });
+                    });
+                }
+            } catch (error) {
+                console.error('Postlarni yuklashda xatolik:', error);
+            }
+        }
+    </script>
+</body>
+</html>

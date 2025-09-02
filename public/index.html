@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asosiy Sahifa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .modal {
+            transition: opacity 0.3s ease;
+        }
+        .search-results {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="text-xl font-bold">NewEra</div>
+                <div class="flex items-center space-x-4">
+                    <!-- Qidiruv qutisi -->
+                    <div class="relative">
+                        <input type="text" id="searchInput" placeholder="🔍Qidirish..." 
+                               class="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <div id="searchResults" class="absolute hidden w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg search-results z-50"></div>
+                    </div>
+                    
+                    <button class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"><a href="/profile" class="text-gray-700 hover:text-blue-500">👤Profil</a></button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Post yaratish tugmasi -->
+        <div class="flex justify-between items-center mb-6">
+            <button id="openModalBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
+                ➕ Yangi post yaratish
+            </button>
+            
+            <!-- Qidiruv filtrlari -->
+            <div id="searchFilters" class="hidden flex items-center space-x-2">
+                <span class="text-gray-600">Qidiruv natijalari:</span>
+                <button id="clearSearchBtn" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 text-sm">
+                    Hamma postlarni ko'rsatish
+                </button>
+            </div>
+        </div>
+
+        <!-- Postlar ro'yxati -->
+        <div id="postsContainer" class="space-y-6">
+            <!-- Postlar JavaScript orqali yuklanadi -->
+        </div>
+
+        <!-- Ko'proq yuklash tugmasi -->
+        <div id="loadMoreContainer" class="mt-6 text-center">
+            <button id="loadMoreBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">Ko'proq yuklash</button>
+        </div>
+    </div>
+
+    <!-- Modal -->
+    <div id="postModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 modal">
+        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Yangi post yaratish</h2>
+                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <form id="createPostForm">
+                <textarea id="postContent" placeholder="Nima yangilik?" 
+                    class="w-full p-3 border border-gray-300 rounded-md mb-3" rows="3" required></textarea>
+                    <h5>havolalarni olish uchun bu saytdan foydalaning: <a href="https://t.me/hallaym" class="text-blue-500">Telegram</a></a></h5>
+                    <input type="text" id="postMedia" placeholder="Rasm/Video havolasi (ixtiyoriy)" 
+                    class="w-full p-3 border border-gray-300 rounded-md mb-3">
+                <button type="submit" 
+                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full">
+                    Post qilish
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        let currentPage = 1;
+        let isLoading = false;
+        let sessionUserId = null;
+        let isSearching = false;
+        let searchQuery = '';
+        let searchTimeout = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            // Avval session ma'lumotlarini olish
+            initializeSession();
+            
+            // Modalni boshqarish
+            setupModal();
+            
+            // Postlarni yuklash
+            loadPosts();
+            
+            // Ko'proq yuklash
+            document.getElementById('loadMoreBtn').addEventListener('click', () => {
+                if (isSearching) {
+                    loadSearchResults(false);
+                } else {
+                    loadPosts();
+                }
+            });
+            
+            // Qidiruvni sozlash
+            setupSearch();
+            
+            // Qidiruvni tozalash
+            document.getElementById('clearSearchBtn').addEventListener('click', () => {
+                document.getElementById('searchInput').value = '';
+                isSearching = false;
+                searchQuery = '';
+                document.getElementById('searchFilters').classList.add('hidden');
+                currentPage = 1;
+                document.getElementById('postsContainer').innerHTML = '';
+                loadPosts();
+            });
+        });
+
+        async function initializeSession() {
+            try {
+                const response = await fetch('/user/me');
+                if (response.status === 401) {
+                    window.location.href = '/register-login.html';
+                    return;
+                }
+                
+                const data = await response.json();
+                if (data.success) {
+                    sessionUserId = data.user._id;
+                    
+                    // Chiqish tugmasini sozlash
+                    document.getElementById('logoutBtn').addEventListener('click', async () => {
+                        try {
+                            await fetch('/logout', { method: 'POST' });
+                            window.location.href = '/register-login.html';
+                        } catch (error) {
+                            console.error('Chiqishda xatolik:', error);
+                        }
+                    });
+                }
+            } catch (error) {
+                console.error('Session ma\'lumotlarini olishda xatolik:', error);
+            }
+        }
+
+        function setupModal() {
+            const modal = document.getElementById("postModal");
+            const openModalBtn = document.getElementById("openModalBtn");
+            const closeModalBtn = document.getElementById("closeModalBtn");
+            const createPostForm = document.getElementById("createPostForm");
+
+            // Modalni ochish
+            openModalBtn.addEventListener("click", () => {
+                modal.classList.remove("hidden");
+            });
+
+            // Modalni yopish
+            closeModalBtn.addEventListener("click", () => {
+                modal.classList.add("hidden");
+            });
+
+            // Modal tashqarisiga bosganda yopish
+            modal.addEventListener("click", (e) => {
+                if (e.target === modal) {
+                    modal.classList.add("hidden");
+                }
+            });
+
+            // ESC tugmasi bilan yopish
+            document.addEventListener("keydown", (e) => {
+                if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+                    modal.classList.add("hidden");
+                }
+            });
+
+            // Formani yuborish
+            createPostForm.addEventListener("submit", async (e) => {
+                e.preventDefault();
+                
+                const content = document.getElementById('postContent').value;
+                const media = document.getElementById('postMedia').value;
+                
+                try {
+                    const response = await fetch('/posts', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ content, media })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        alert("✅ Post joylandi!");
+                        modal.classList.add("hidden");
+                        createPostForm.reset();
+                        
+                        if (isSearching) {
+                            // Agar qidiruv rejimida bo'lsa, yangi postni tekshirish
+                            if (content.toLowerCase().includes(searchQuery.toLowerCase())) {
+                                loadSearchResults(true);
+                            }
+                        } else {
+                            loadPosts(true); // Yangi postlarni yuklash
+                        }
+                    } else {
+                        alert('Post yaratishda xatolik: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Xatolik:', error);
+                    alert('Post yaratishda xatolik');
+                }
+            });
+        }
+
+        function setupSearch() {
+            const searchInput = document.getElementById('searchInput');
+            const searchResults = document.getElementById('searchResults');
+            
+            // Qidiruv inputida yozilganda
+            searchInput.addEventListener('input', function() {
+                const query = this.value.trim();
+                
+                // Oldingi timeoutni tozalash
+                if (searchTimeout) {
+                    clearTimeout(searchTimeout);
+                }
+                
+                // Agar query bo'sh bo'lsa
+                if (query === '') {
+                    searchResults.classList.add('hidden');
+                    isSearching = false;
+                    searchQuery = '';
+                    document.getElementById('searchFilters').classList.add('hidden');
+                    currentPage = 1;
+                    document.getElementById('postsContainer').innerHTML = '';
+                    loadPosts();
+                    return;
+                }
+                
+                // Yangi timeout o'rnatish
+                searchTimeout = setTimeout(async () => {
+                    try {
+                        const response = await fetch(`/search?q=${encodeURIComponent(query)}&type=quick`);
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            displayQuickSearchResults(data.results, query);
+                        }
+                    } catch (error) {
+                        console.error('Qidiruvda xatolik:', error);
+                    }
+                }, 300);
+            });
+            
+            // Qidiruv inputiga fokus bo'lganda
+            searchInput.addEventListener('focus', function() {
+                const query = this.value.trim();
+                if (query !== '' && searchResults.innerHTML !== '') {
+                    searchResults.classList.remove('hidden');
+                }
+            });
+            
+            // Sahifaning boshqa joyiga bosilganda qidiruv natijalarini yashirish
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+                    searchResults.classList.add('hidden');
+                }
+            });
+            
+            // Enter bosilganda to'liq qidiruvni boshlash
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    performFullSearch(this.value.trim());
+                }
+            });
+        }
+        
+        function displayQuickSearchResults(results, query) {
+            const searchResults = document.getElementById('searchResults');
+            
+            if (results.length === 0) {
+                searchResults.innerHTML = '<div class="p-3 text-gray-500">Hech narsa topilmadi</div>';
+                searchResults.classList.remove('hidden');
+                return;
+            }
+            
+            let html = '';
+            
+            // Postlar
+            if (results.posts && results.posts.length > 0) {
+                html += '<div class="p-2 font-semibold text-sm border-b">Postlar</div>';
+                results.posts.slice(0, 3).forEach(post => {
+                    html += `
+                        <div class="p-2 hover:bg-gray-100 cursor-pointer border-b search-item" data-type="post" data-id="${post._id}">
+                            <div class="font-medium">${highlightText(post.content, query)}</div>
+                            <div class="text-xs text-gray-500">${post.userId.fullName} tomonidan</div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Foydalanuvchilar
+            if (results.users && results.users.length > 0) {
+                html += '<div class="p-2 font-semibold text-sm border-b">Foydalanuvchilar</div>';
+                results.users.slice(0, 3).forEach(user => {
+                    html += `
+                        <div class="p-2 hover:bg-gray-100 cursor-pointer border-b search-item" data-type="user" data-id="${user._id}">
+                            <div class="flex items-center">
+                                <img src="${user.profilePic || 'https://via.placeholder.com/30'}" class="w-6 h-6 rounded-full mr-2">
+                                <div>
+                                    <div class="font-medium">${highlightText(user.fullName, query)}</div>
+                                    <div class="text-xs text-gray-500">@${highlightText(user.username, query)}</div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            // Barcha natijalarni ko'rish tugmasi
+            if ((results.posts && results.posts.length > 3) || (results.users && results.users.length > 3)) {
+                html += `
+                    <div class="p-2 text-center bg-gray-100">
+                        <button id="viewAllResults" class="text-blue-500 text-sm font-medium">
+                            Barcha natijalarni ko'rish
+                        </button>
+                    </div>
+                `;
+            }
+            
+            searchResults.innerHTML = html;
+            searchResults.classList.remove('hidden');
+            
+            // Natijalarga click event qo'shish
+            document.querySelectorAll('.search-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const type = this.getAttribute('data-type');
+                    const id = this.getAttribute('data-id');
+                    
+                    if (type === 'post') {
+                        // Postni ko'rsatish
+                        viewPost(id);
+                    } else if (type === 'user') {
+                        // Foydalanuvchi profiliga o'tish
+                        window.location.href = `/profile?id=${id}`;
+                    }
+                });
+            });
+            
+            // Barcha natijalarni ko'rish tugmasi
+            if (document.getElementById('viewAllResults')) {
+                document.getElementById('viewAllResults').addEventListener('click', function() {
+                    performFullSearch(query);
+                    searchResults.classList.add('hidden');
+                });
+            }
+        }
+        
+        function highlightText(text, query) {
+            if (!query) return text;
+            
+            const regex = new RegExp(`(${query})`, 'gi');
+            return text.replace(regex, '<span class="bg-yellow-200">$1</span>');
+        }
+        
+        function performFullSearch(query) {
+            if (query.trim() === '') return;
+            
+            searchQuery = query.trim();
+            isSearching = true;
+            currentPage = 1;
+            document.getElementById('postsContainer').innerHTML = '';
+            document.getElementById('searchFilters').classList.remove('hidden');
+            document.getElementById('searchResults').classList.add('hidden');
+            
+            loadSearchResults(true);
+        }
+        
+        async function loadSearchResults(reset = false) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            
+            if (reset) {
+                currentPage = 1;
+                document.getElementById('postsContainer').innerHTML = '';
+            }
+            
+            try {
+                const response = await fetch(`/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.posts.length === 0 && currentPage === 1) {
+                        document.getElementById('postsContainer').innerHTML = `
+                            <div class="text-center py-10">
+                                <div class="text-gray-500 text-lg">"${searchQuery}" bo'yicha hech narsa topilmadi</div>
+                                <button id="tryOtherQuery" class="mt-4 text-blue-500 hover:underline">
+                                    Boshqa so'zlar bilan qidirish
+                                </button>
+                            </div>
+                        `;
+                        
+                        document.getElementById('tryOtherQuery').addEventListener('click', function() {
+                            document.getElementById('searchInput').focus();
+                        });
+                        
+                        document.getElementById('loadMoreContainer').classList.add('hidden');
+                    } else if (data.posts.length > 0) {
+                        renderPosts(data.posts, true);
+                        currentPage++;
+                    }
+                    
+                    if (data.posts.length < 10) {
+                        document.getElementById('loadMoreContainer').classList.add('hidden');
+                    } else {
+                        document.getElementById('loadMoreContainer').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Qidiruv natijalarini yuklashda xatolik:', error);
+                document.getElementById('postsContainer').innerHTML = `
+                    <div class="text-center py-10 text-red-500">
+                        Qidiruv natijalarini yuklashda xatolik yuz berdi. Iltimos, keyinroq urunib ko'ring.
+                    </div>
+                `;
+            } finally {
+                isLoading = false;
+            }
+        }
+        
+        function viewPost(postId) {
+            // Postni ajratib ko'rsatish logikasi
+            // Hozircha oddiygina postni topib, uni sahifa tepasiga aylantiramiz
+            document.getElementById('searchResults').classList.add('hidden');
+            isSearching = false;
+            searchQuery = '';
+            document.getElementById('searchInput').value = '';
+            document.getElementById('searchFilters').classList.add('hidden');
+            
+            // Postni yuklash
+            currentPage = 1;
+            document.getElementById('postsContainer').innerHTML = '';
+            loadPosts(true);
+            
+            // Postni topib highlight qilish
+            setTimeout(() => {
+                const postElement = document.querySelector(`[data-post-id="${postId}"]`);
+                if (postElement) {
+                    postElement.scrollIntoView({ behavior: 'smooth' });
+                    postElement.classList.add('bg-blue-50', 'border-blue-200', 'border-2');
+                    
+                    // 3 soniyadan so'ng highlightni olib tashlash
+                    setTimeout(() => {
+                        postElement.classList.remove('bg-blue-50', 'border-blue-200', 'border-2');
+                    }, 3000);
+                }
+            }, 500);
+        }
+
+        async function loadPosts(reset = false) {
+            if (isLoading) return;
+            
+            isLoading = true;
+            
+            if (reset) {
+                currentPage = 1;
+                document.getElementById('postsContainer').innerHTML = '';
+            }
+            
+            try {
+                const response = await fetch(`/posts?page=${currentPage}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    if (data.posts.length === 0 && currentPage === 1) {
+                        document.getElementById('postsContainer').innerHTML = '<p class="text-center text-gray-500">Hali postlar mavjud emas</p>';
+                        document.getElementById('loadMoreContainer').classList.add('hidden');
+                    } else if (data.posts.length > 0) {
+                        renderPosts(data.posts);
+                        currentPage++;
+                    }
+                    
+                    if (data.posts.length < 10) {
+                        document.getElementById('loadMoreContainer').classList.add('hidden');
+                    } else {
+                        document.getElementById('loadMoreContainer').classList.remove('hidden');
+                    }
+                }
+            } catch (error) {
+                console.error('Postlarni yuklashda xatolik:', error);
+            } finally {
+                isLoading = false;
+            }
+        }
+
+        function renderPosts(posts, isSearchResult = false) {
+            const postsContainer = document.getElementById('postsContainer');
+            
+            posts.forEach(post => {
+                const postElement = document.createElement('div');
+                postElement.className = 'bg-white p-6 rounded-lg shadow-md';
+                postElement.setAttribute('data-post-id', post._id);
+                
+                // Agar qidiruv natijasi bo'lsa, matnni highlight qilish
+                let content = post.content;
+                if (isSearchResult && searchQuery) {
+                    content = highlightText(content, searchQuery);
+                }
+                
+                postElement.innerHTML = `
+                    <div class="flex items-center mb-4">
+                        <img src="${post.userId.profilePic || 'https://via.placeholder.com/40'}" alt="Profile" class="w-10 h-10 rounded-full mr-3">
+                        <div>
+                            <a href="/profile?id=${post.userId._id}" class="font-semibold hover:text-blue-500">${post.userId.fullName}</a>
+                            <p class="text-gray-500 text-sm">@${post.userId.username}</p>
+                        </div>
+                    </div>
+                    
+                    <p class="mb-4">${content}</p>
+                    
+                    ${post.media ? `
+                        <div class="mb-4">
+                            ${post.media.includes('.mp4') || post.media.includes('.webm') || post.media.includes('.ogg') 
+                                ? `<video src="${post.media}" controls class="w-full rounded-md"></video>` 
+                                : `<img src="${post.media}" alt="Post media" class="w-full rounded-md">`}
+                        </div>
+                    ` : ''}
+                    
+                    <div class="flex items-center space-x-4 text-gray-500">
+                        <button class="flex items-center space-x-1 like-btn ${post.likes.includes(sessionUserId) ? 'text-blue-500' : ''}" data-post-id="${post._id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                            <span>${post.likes.length}</span>
+                        </button>
+                        
+                        <button class="flex items-center space-x-1 comment-toggle-btn" data-post-id="${post._id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <span>${post.comments.length}</span>
+                        </button>
+                    </div>
+                    
+                    <!-- Kommentlar -->
+                    <div class="mt-4 border-t pt-4 hidden comment-section" id="comments-${post._id}">
+                        <form class="mb-4 add-comment-form" data-post-id="${post._id}">
+                            <input type="text" placeholder="Komment qo'shish..." class="w-full p-2 border border-gray-300 rounded-md" required>
+                            <button type="submit" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">Yuborish</button>
+                        </form>
+                        
+                        <div class="space-y-3 post-comments">
+                            ${renderComments(post.comments, post._id)}
+                        </div>
+                    </div>
+                `;
+                
+                postsContainer.appendChild(postElement);
+            });
+            
+            // Like tugmasi
+            document.querySelectorAll('.like-btn').forEach(btn => {
+                btn.addEventListener('click', async function() {
+                    const postId = this.getAttribute('data-post-id');
+                    
+                    try {
+                        const response = await fetch(`/posts/${postId}/like`, {
+                            method: 'POST'
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            const likeCount = this.querySelector('span');
+                            likeCount.textContent = data.likes;
+                            
+                            if (this.classList.contains('text-blue-500')) {
+                                this.classList.remove('text-blue-500');
+                            } else {
+                                this.classList.add('text-blue-500');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Like qilishda xatolik:', error);
+                    }
+                });
+            });
+            
+            // Kommentlarni ko'rsatish/yashirish
+            document.querySelectorAll('.comment-toggle-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const postId = this.getAttribute('data-post-id');
+                    const commentSection = document.getElementById(`comments-${postId}`);
+                    commentSection.classList.toggle('hidden');
+                });
+            });
+            
+            // Komment qo'shish
+            document.querySelectorAll('.add-comment-form').forEach(form => {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    const postId = this.getAttribute('data-post-id');
+                    const content = this.querySelector('input').value;
+                    
+                    try {
+                        const response = await fetch(`/posts/${postId}/comment`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({ content })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (data.success) {
+                            this.querySelector('input').value = '';
+                            const commentsContainer = this.nextElementSibling;
+                            const commentElement = createCommentElement(data.comment, postId);
+                            commentsContainer.appendChild(commentElement);
+                            
+                            // Kommentlar sonini yangilash
+                            const commentBtn = document.querySelector(`.comment-toggle-btn[data-post-id="${postId}"] span`);
+                            commentBtn.textContent = parseInt(commentBtn.textContent) + 1;
+                        }
+                    } catch (error) {
+                        console.error('Komment qo\'shishda xatolik:', error);
+                    }
+                });
+            });
+        }
+
+        function renderComments(comments, postId) {
+            // Kommentlarni like soni bo'yicha tartiblash
+            comments.sort((a, b) => b.likes.length - a.likes.length);
+            
+            let html = '';
+            
+            comments.forEach(comment => {
+                html += `
+                    <div class="border-l-2 border-gray-200 pl-3">
+                        <div class="flex items-center mb-1">
+                            <img src="${comment.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
+                            <span class="font-semibold">${comment.userId.fullName}</span>
+                            <span class="text-gray-500 text-sm ml-2">@${comment.userId.username}</span>
+                        </div>
+                        <p class="mb-2">${comment.content}</p>
+                        
+                        <div class="flex items-center space-x-3 text-sm text-gray-500">
+                            <button class="flex items-center space-x-1 comment-like-btn ${comment.likes.includes(sessionUserId) ? 'text-blue-500' : ''}" data-post-id="${postId}" data-comment-id="${comment._id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                </svg>
+                                <span>${comment.likes.length}</span>
+                            </button>
+                            
+                            <button class="reply-toggle-btn" data-comment-id="${comment._id}">Javob berish</button>
+                        </div>
+                        
+                        <!-- Javoblar formasi -->
+                        <form class="mt-2 mb-3 add-reply-form hidden" data-post-id="${postId}" data-comment-id="${comment._id}">
+                            <input type="text" placeholder="Javob yozish..." class="w-full p-2 border border-gray-300 rounded-md text-sm" required>
+                            <button type="submit" class="mt-1 bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600">Yuborish</button>
+                        </form>
+                        
+                        <!-- Javoblar -->
+                        <div class="mt-2 space-y-2">
+                            ${renderReplies(comment.replies, postId, comment._id)}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return html || '<p class="text-gray-500 text-sm">Hali kommentlar mavjud emas</p>';
+        }
+
+        function renderReplies(replies, postId, commentId) {
+            let html = '';
+            
+            replies.forEach(reply => {
+                html += `
+                    <div class="border-l-2 border-gray-100 pl-3">
+                        <div class="flex items-center mb-1">
+                            <img src="${reply.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
+                            <span class="font-semibold">${reply.userId.fullName}</span>
+                            <span class="text-gray-500 text-sm ml-2">@${reply.userId.username}</span>
+                        </div>
+                        <p class="mb-2">${reply.content}</p>
+                        
+                        <div class="flex items-center space-x-3 text-sm text-gray-500">
+                            <button class="flex items-center space-x-1 reply-like-btn ${reply.likes.includes(sessionUserId) ? 'text-blue-500' : ''}" data-post-id="${postId}" data-comment-id="${commentId}" data-reply-id="${reply._id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                                </svg>
+                                <span>${reply.likes.length}</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            return html;
+        }
+
+        function createCommentElement(comment, postId) {
+            const div = document.createElement('div');
+            div.className = 'border-l-2 border-gray-200 pl-3';
+            div.innerHTML = `
+                <div class="flex items-center mb-1">
+                    <img src="${comment.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
+                    <span class="font-semibold">${comment.userId.fullName}</span>
+                    <span class="text-gray-500 text-sm ml-2">@${comment.userId.username}</span>
+                </div>
+                <p class="mb-2">${comment.content}</p>
+                
+                <div class="flex items-center space-x-3 text-sm text-gray-500">
+                    <button class="flex items-center space-x-1 comment-like-btn" data-post-id="${postId}" data-comment-id="${comment._id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                        </svg>
+                        <span>0</span>
+                    </button>
+                    
+                    <button class="reply-toggle-btn" data-comment-id="${comment._id}">Javob berish</button>
+                </div>
+                
+                <!-- Javoblar formasi -->
+                <form class="mt-2 mb-3 add-reply-form hidden" data-post-id="${postId}" data-comment-id="${comment._id}">
+                    <input type="text" placeholder="Javob yozish..." class="w-full p-2 border border-gray-300 rounded-md text-sm" required>
+                    <button type="submit" class="mt-1 bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600">Yuborish</button>
+                </form>
+                
+                <!-- Javoblar -->
+                <div class="mt-2 space-y-2 replies-container"></div>
+            `;
+            
+            // Like tugmasi
+            const likeBtn = div.querySelector('.comment-like-btn');
+            likeBtn.addEventListener('click', async function() {
+                const commentId = this.getAttribute('data-comment-id');
+                
+                try {
+                    const response = await fetch(`/posts/${postId}/comments/${commentId}/like`, {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const likeCount = this.querySelector('span');
+                        likeCount.textContent = data.likes;
+                        
+                        if (this.classList.contains('text-blue-500')) {
+                            this.classList.remove('text-blue-500');
+                        } else {
+                            this.classList.add('text-blue-500');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Komment like qilishda xatolik:', error);
+                }
+            });
+            
+            // Javob berish tugmasi
+            const replyToggleBtn = div.querySelector('.reply-toggle-btn');
+            replyToggleBtn.addEventListener('click', function() {
+                const form = this.parentElement.nextElementSibling;
+                form.classList.toggle('hidden');
+            });
+            
+            // Javob qo'shish
+            const replyForm = div.querySelector('.add-reply-form');
+            replyForm.addEventListener('submit', async function(e) {
+                e.preventDefault();
+                const commentId = this.getAttribute('data-comment-id');
+                const content = this.querySelector('input').value;
+                
+                try {
+                    const response = await fetch(`/posts/${postId}/comments/${commentId}/reply`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ content })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        this.querySelector('input').value = '';
+                        const repliesContainer = this.nextElementSibling;
+                        const replyElement = createReplyElement(data.reply, postId, commentId);
+                        repliesContainer.appendChild(replyElement);
+                    }
+                } catch (error) {
+                    console.error('Javob qo\'shishda xatolik:', error);
+                }
+            });
+            
+            return div;
+        }
+
+        function createReplyElement(reply, postId, commentId) {
+            const div = document.createElement('div');
+            div.className = 'border-l-2 border-gray-100 pl-3';
+            div.innerHTML = `
+                <div class="flex items-center mb-1">
+                    <img src="${reply.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
+                    <span class="font-semibold">${reply.userId.fullName}</span>
+                    <span class="text-gray-500 text-sm ml-2">@${reply.userId.username}</span>
+                </div>
+                <p class="mb-2">${reply.content}</p>
+                
+                <div class="flex items-center space-x-3 text-sm text-gray-500">
+                    <button class="flex items-center space-x-1 reply-like-btn" data-post-id="${postId}" data-comment-id="${commentId}" data-reply-id="${reply._id}">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                        </svg>
+                        <span>0</span>
+                    </button>
+                </div>
+            `;
+            
+            // Like tugmasi
+            const likeBtn = div.querySelector('.reply-like-btn');
+            likeBtn.addEventListener('click', async function() {
+                const replyId = this.getAttribute('data-reply-id');
+                
+                try {
+                    // Bu endpoint serverda yozilishi kerak
+                    const response = await fetch(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`, {
+                        method: 'POST'
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        const likeCount = this.querySelector('span');
+                        likeCount.textContent = data.likes;
+                        
+                        if (this.classList.contains('text-blue-500')) {
+                            this.classList.remove('text-blue-500');
+                        } else {
+                            this.classList.add('text-blue-500');
+                        }
+                    }
+                } catch (error) {
+                    console.error('Javob like qilishda xatolik:', error);
+                }
+            });
+            
+            return div;
+        }
+    </script>
+</body>
+</html>

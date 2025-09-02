@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #messageHistory {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e0 #f7fafc;
+        }
+        
+        #messageHistory::-webkit-scrollbar {
+            width: 6px;
+        }
+        
+        #messageHistory::-webkit-scrollbar-track {
+            background: #f7fafc;
+            border-radius: 3px;
+        }
+        
+        #messageHistory::-webkit-scrollbar-thumb {
+            background-color: #cbd5e0;
+            border-radius: 3px;
+        }
+        
+        /* Tahrirlash modali uchun yangi style */
+        #edit-modal {
+            transition: opacity 0.3s ease;
+        }
+    </style>
+</head>
+<body class="bg-gray-100">
+    <!-- Navbar -->
+    <nav class="bg-white shadow-md">
+        <div class="max-w-6xl mx-auto px-4">
+            <div class="flex justify-between items-center py-4">
+                <div class="text-xl font-bold">Ijtimoiy Tarmoq</div>
+                <div class="flex items-center space-x-4">
+                    <a href="/" class="text-gray-700 hover:text-blue-500">Asosiy</a>
+                    <a href="/admin" class="text-gray-700 hover:text-blue-500">Admin</a>
+                    <button id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600">Chiqish</button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <div class="max-w-4xl mx-auto px-4 py-8">
+        <!-- Loading holati -->
+        <div id="loading" class="text-center py-8">
+            <p class="text-gray-500">Yuklanmoqda...</p>
+        </div>
+
+        <!-- Profil ma'lumotlari -->
+        <div id="profileContent" class="hidden">
+            <div class="bg-white p-6 rounded-lg shadow-md mb-6">
+                <div class="flex items-center mb-6">
+                    <img id="profilePic" src="https://via.placeholder.com/100" alt="Profile" class="w-24 h-24 rounded-full mr-6 object-cover">
+                    <div>
+                        <h1 id="profileName" class="text-2xl font-bold"></h1>
+                        <p id="profileUsername" class="text-gray-500"></p>
+                        <p id="profileBio" class="mt-2"></p>
+                        
+                        <div class="flex mt-4 space-x-6">
+                            <div>
+                                <span class="font-semibold" id="postCount">0</span>
+                                <p class="text-gray-500">Postlar</p>
+                            </div>
+                            <div>
+                                <span class="font-semibold" id="followerCount">0</span>
+                                <p class="text-gray-500">Obunachilar</p>
+                            </div>
+                            <div>
+                                <span class="font-semibold" id="followingCount">0</span>
+                                <p class="text-gray-500">Obunalar</p>
+                            </div>
+                            <div>
+                                <span class="font-semibold" id="totalLikes">0</span>
+                                <p class="text-gray-500">Likelar</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Harakatlar tugmalari -->
+                <div id="actionButtons" class="mt-4">
+                    <!-- JavaScript orqali to'ldiriladi -->
+                </div>
+            </div>
+
+            <!-- Postlar -->
+            <h2 class="text-xl font-semibold mb-4">Postlar</h2>
+            <div id="userPosts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <!-- Foydalanuvchi postlari JavaScript orqali yuklanadi -->
+            </div>
+
+            <!-- Post yo'q -->
+            <div id="noPosts" class="bg-white p-6 rounded-lg shadow-md text-center hidden">
+                <p class="text-gray-500">Hali postlar mavjud emas</p>
+            </div>
+        </div>
+
+        <!-- Xatolik xabari -->
+        <div id="errorMessage" class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded hidden">
+            <!-- Xato xabari -->
+        </div>
+    </div>
+
+    <!-- Tahrirlash formasi (modal) -->
+    <div id="editModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 class="text-xl font-semibold mb-4">Profilni tahrirlash</h2>
+            <form id="editProfileForm">
+                <div class="mb-4">
+                    <label for="editFullName" class="block text-sm font-medium text-gray-700">To'liq ism</label>
+                    <input type="text" id="editFullName" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                </div>
+                <div class="mb-4">
+                    <label for="editBio" class="block text-sm font-medium text-gray-700">Bio</label>
+                    <textarea id="editBio" rows="3" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm"></textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="editProfilePic" class="block text-sm font-medium text-gray-700">Profil rasmi</label>
+                    <input type="file" id="editProfilePic" accept="image/*" class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm">
+                    <p class="text-xs text-gray-500 mt-1">Faqat rasm fayllari. Maksimum hajm: 5MB</p>
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" id="cancelEditBtn" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Bekor qilish</button>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Saqlash</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Post tahrirlash modali -->
+    <div id="edit-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <h2 class="text-xl font-semibold mb-4">Postni tahrirlash</h2>
+            <textarea id="edit-content" rows="4" class="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm mb-4"></textarea>
+            <div class="flex justify-end space-x-2">
+                <button type="button" id="cancel-edit" class="bg-gray-300 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-400">Bekor qilish</button>
+                <button type="button" id="save-edit" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">Saqlash</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Xabar yuborish modali -->
+    <div id="messageModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold" id="messageModalTitle">Xabar yuborish</h2>
+                <button id="closeMessageModal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            
+            <div class="mb-4">
+                <div class="flex items-center mb-3">
+                    <img id="messageUserPic" src="" alt="Profile" class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        <p id="messageUserName" class="font-semibold"></p>
+                        <p id="messageUserUsername" class="text-gray-500 text-sm"></p>
+                    </div>
+                </div>
+                
+                <div id="messageHistory" class="h-64 overflow-y-auto border border-gray-200 rounded-md p-3 mb-3 bg-gray-50">
+                    <!-- Xabarlar shu yerda ko'rsatiladi -->
+                    <div class="text-center text-gray-500 py-8">Xabarlar yuklanmoqda...</div>
+                </div>
+                
+                <form id="sendMessageForm" class="flex">
+                    <input type="text" id="messageInput" placeholder="Xabar yozing..." class="flex-1 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded-r-md hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path fill-rule="evenodd" d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentUserId = null;
+        let isOwnProfile = false;
+        let sessionUserId = null;
+        let currentChatUser = null;
+        let messageInterval = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializePage();
+            setupMessageModal();
+            setupEditModal();
+        });
+
+        async function initializePage() {
+            // Session ma'lumotlarini olish
+            try {
+                const response = await fetch('/user/me');
+                
+                if (response.status === 401) {
+                    window.location.href = '/register-login.html';
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    sessionUserId = data.user._id;
+                    
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const userId = urlParams.get('id');
+                    currentUserId = userId || sessionUserId;
+                    
+                    document.getElementById('logoutBtn').addEventListener('click', async () => {
+                        try {
+                            await fetch('/logout', { method: 'POST' });
+                            window.location.href = '/register-login.html';
+                        } catch (error) {
+                            console.error('Chiqishda xatolik:', error);
+                            showError('Chiqishda xatolik yuz berdi');
+                        }
+                    });
+                    
+                    await loadProfile(currentUserId);
+                    await loadUserPosts(currentUserId);
+                    setupModal();
+                    
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('profileContent').classList.remove('hidden');
+                } else {
+                    showError('Server xatosi: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Session ma\'lumotlarini olishda xatolik:', error);
+                showError('Serverga ulanishda xatolik. Iltimos, qayta urunib ko\'ring.');
+            }
+        }
+
+        function setupModal() {
+            document.getElementById('cancelEditBtn').addEventListener('click', function() {
+                document.getElementById('editModal').classList.add('hidden');
+            });
+            
+            document.getElementById('editProfileForm').addEventListener('submit', async function(e) {
+                e.preventDefault();
+                
+                const fullName = document.getElementById('editFullName').value;
+                const bio = document.getElementById('editBio').value;
+                const profilePicFile = document.getElementById('editProfilePic').files[0];
+                
+                try {
+                    const response = await fetch('/user', {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ fullName, bio })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        if (profilePicFile) {
+                            const formData = new FormData();
+                            formData.append('profilePic', profilePicFile);
+                            
+                            const uploadResponse = await fetch('/upload', {
+                                method: 'POST',
+                                body: formData
+                            });
+                            
+                            const uploadData = await uploadResponse.json();
+                            
+                            if (!uploadData.success) {
+                                alert('Rasm yuklashda xatolik: ' + uploadData.message);
+                            }
+                        }
+                        
+                        document.getElementById('editModal').classList.add('hidden');
+                        await loadProfile(currentUserId);
+                    } else {
+                        alert('Profilni yangilashda xatolik: ' + data.message);
+                    }
+                } catch (error) {
+                    console.error('Xatolik:', error);
+                    alert('Profilni yangilashda xatolik');
+                }
+            });
+        }
+
+        function setupMessageModal() {
+            const messageModal = document.getElementById('messageModal');
+            const closeMessageModal = document.getElementById('closeMessageModal');
+            
+            closeMessageModal.addEventListener('click', () => {
+                messageModal.classList.add('hidden');
+                clearInterval(messageInterval);
+            });
+            
+            document.getElementById('sendMessageForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await sendMessage();
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !messageModal.classList.contains('hidden')) {
+                    messageModal.classList.add('hidden');
+                    clearInterval(messageInterval);
+                }
+            });
+        }
+
+        function setupEditModal() {
+            const editModal = document.getElementById('edit-modal');
+            const cancelEdit = document.getElementById('cancel-edit');
+            const saveEdit = document.getElementById('save-edit');
+            
+            cancelEdit.addEventListener('click', () => {
+                editModal.classList.add('hidden');
+            });
+            
+            saveEdit.addEventListener('click', async () => {
+                const postId = editModal.getAttribute('data-post-id');
+                const newContent = document.getElementById('edit-content').value.trim();
+                
+                if (!newContent) {
+                    showMessage('Post matni bo\'sh bo\'lmasligi kerak', 'error');
+                    return;
+                }
+                
+                try {
+                    const response = await fetch(`/posts/${postId}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ content: newContent })
+                    });
+                    
+                    const data = await response.json();
+                    
+                    if (data.success) {
+                        editModal.classList.add('hidden');
+                        showMessage('Post muvaffaqiyatli yangilandi', 'success');
+                        await loadUserPosts(currentUserId);
+                    } else {
+                        showMessage('Postni yangilashda xatolik: ' + data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Xatolik:', error);
+                    showMessage('Postni yangilashda xatolik', 'error');
+                }
+            });
+            
+            editModal.addEventListener('click', (e) => {
+                if (e.target === editModal) {
+                    editModal.classList.add('hidden');
+                }
+            });
+            
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape' && !editModal.classList.contains('hidden')) {
+                    editModal.classList.add('hidden');
+                }
+            });
+        }
+
+        async function loadProfile(userId) {
+            try {
+                const response = await fetch(`/user/${userId}`);
+                
+                if (response.status === 404) {
+                    showError('Foydalanuvchi topilmadi');
+                    return;
+                }
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    const user = data.user;
+                    
+                    document.getElementById('profilePic').src = user.profilePic || 'https://via.placeholder.com/100';
+                    document.getElementById('profileName').textContent = user.fullName;
+                    document.getElementById('profileUsername').textContent = `@${user.username}`;
+                    document.getElementById('profileBio').textContent = user.bio || 'Bio mavjud emas';
+                    document.getElementById('postCount').textContent = user.postCount;
+                    document.getElementById('followerCount').textContent = user.followers.length;
+                    document.getElementById('followingCount').textContent = user.following.length;
+                    document.getElementById('totalLikes').textContent = user.totalLikes;
+                    
+                    document.getElementById('editFullName').value = user.fullName;
+                    document.getElementById('editBio').value = user.bio || '';
+                    
+                    isOwnProfile = userId === sessionUserId;
+                    
+                    const actionButtons = document.getElementById('actionButtons');
+                    actionButtons.innerHTML = '';
+                    
+                    if (isOwnProfile) {
+                        const editBtn = document.createElement('button');
+                        editBtn.id = 'editProfileBtn';
+                        editBtn.className = 'bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600';
+                        editBtn.textContent = 'Profilni tahrirlash';
+                        actionButtons.appendChild(editBtn);
+                        
+                        editBtn.addEventListener('click', function() {
+                            document.getElementById('editModal').classList.remove('hidden');
+                        });
+                    } else {
+                        const isFollowing = user.followers.some(follower => follower._id === sessionUserId);
+                        const followBtn = document.createElement('button');
+                        followBtn.id = 'followBtn';
+                        followBtn.className = `mr-2 ${isFollowing ? 'bg-gray-300 text-gray-700' : 'bg-blue-500 text-white'} px-4 py-2 rounded-md hover:opacity-90`;
+                        followBtn.textContent = isFollowing ? 'Obuna bo\'lingan' : 'Obuna bo\'lish';
+                        actionButtons.appendChild(followBtn);
+                        
+                        const messageBtn = setupMessageButton(user);
+                        actionButtons.appendChild(messageBtn);
+                        
+                        followBtn.addEventListener('click', async function() {
+                            try {
+                                const response = await fetch(`/user/${userId}/follow`, {
+                                    method: 'POST'
+                                });
+                                
+                                const data = await response.json();
+                                
+                                if (data.success) {
+                                    const isNowFollowing = data.isFollowing;
+                                    this.textContent = isNowFollowing ? 'Obuna bo\'lingan' : 'Obuna bo\'lish';
+                                    this.className = `mr-2 ${isNowFollowing ? 'bg-gray-300 text-gray-700' : 'bg-blue-500 text-white'} px-4 py-2 rounded-md hover:opacity-90`;
+                                    
+                                    document.getElementById('followerCount').textContent = data.followers;
+                                }
+                            } catch (error) {
+                                console.error('Obuna bo\'lishda xatolik:', error);
+                            }
+                        });
+                    }
+                } else {
+                    showError('Profil ma\'lumotlarini yuklashda xatolik: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Profil ma\'lumotlarini yuklashda xatolik:', error);
+                showError('Profil ma\'lumotlarini yuklashda xatolik');
+            }
+        }
+
+        function setupMessageButton(user) {
+            const messageBtn = document.createElement('button');
+            messageBtn.className = 'bg-green-500 text-white px-4 py-2 rounded-md hover:bg-green-600';
+            messageBtn.textContent = 'Xabar yuborish';
+            
+            messageBtn.addEventListener('click', () => {
+                openMessageModal(user);
+            });
+            
+            return messageBtn;
+        }
+
+        function openMessageModal(user) {
+            currentChatUser = user;
+            const modal = document.getElementById('messageModal');
+            const title = document.getElementById('messageModalTitle');
+            const userPic = document.getElementById('messageUserPic');
+            const userName = document.getElementById('messageUserName');
+            const userUsername = document.getElementById('messageUserUsername');
+            
+            title.textContent = `${user.fullName} bilan suhbat`;
+            userPic.src = user.profilePic || 'https://via.placeholder.com/40';
+            userName.textContent = user.fullName;
+            userUsername.textContent = `@${user.username}`;
+            
+            loadMessages(user._id);
+            
+            modal.classList.remove('hidden');
+            
+            clearInterval(messageInterval);
+            messageInterval = setInterval(() => {
+                loadMessages(user._id);
+            }, 10000);
+            
+            document.getElementById('messageInput').focus();
+        }
+
+        async function loadMessages(userId) {
+            try {
+                const response = await fetch(`/messages/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const messageHistory = document.getElementById('messageHistory');
+                    messageHistory.innerHTML = '';
+                    
+                    if (data.messages.length === 0) {
+                        messageHistory.innerHTML = '<div class="text-center text-gray-500 py-8">Hali xabarlar mavjud emas</div>';
+                        return;
+                    }
+                    
+                    data.messages.forEach(message => {
+                        const messageElement = createMessageElement(message);
+                        messageHistory.appendChild(messageElement);
+                    });
+                    
+                    messageHistory.scrollTop = messageHistory.scrollHeight;
+                    
+                    await fetch(`/messages/${userId}/read`, {
+                        method: 'POST'
+                    });
+                }
+            } catch (error) {
+                console.error('Xabarlarni yuklashda xatolik:', error);
+            }
+        }
+
+        function createMessageElement(message) {
+            const isSender = message.senderId._id === sessionUserId;
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `mb-3 ${isSender ? 'text-right' : 'text-left'}`;
+            
+            messageDiv.innerHTML = `
+                <div class="inline-block max-w-xs lg:max-w-md rounded-lg px-4 py-2 ${isSender 
+                    ? 'bg-blue-500 text-white' 
+                    : 'bg-gray-200 text-gray-800'}">
+                    <div class="text-sm">${message.content}</div>
+                    <div class="text-xs mt-1 ${isSender ? 'text-blue-100' : 'text-gray-500'}">
+                        ${new Date(message.createdAt).toLocaleTimeString('uz-UZ', { 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                        })}
+                    </div>
+                </div>
+            `;
+            
+            return messageDiv;
+        }
+
+        function openEditModal(postId, currentContent) {
+            const modal = document.getElementById('edit-modal');
+            const editContent = document.getElementById('edit-content');
+            
+            editContent.value = currentContent;
+            modal.setAttribute('data-post-id', postId);
+            modal.classList.remove('hidden');
+        }
+
+        async function sendMessage() {
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value.trim();
+            
+            if (!content) return;
+            
+            try {
+                const response = await fetch('/messages', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        receiverId: currentChatUser._id,
+                        content
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    messageInput.value = '';
+                    await loadMessages(currentChatUser._id);
+                } else {
+                    alert('Xabar yuborishda xatolik: ' + data.message);
+                }
+            } catch (error) {
+                console.error('Xabar yuborishda xatolik:', error);
+                alert('Xabar yuborishda xatolik');
+            }
+        }
+
+        async function loadUserPosts(userId) {
+            try {
+                const response = await fetch(`/posts/user/${userId}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const postsContainer = document.getElementById('userPosts');
+                    postsContainer.innerHTML = '';
+                    
+                    if (data.posts.length === 0) {
+                        document.getElementById('noPosts').classList.remove('hidden');
+                        return;
+                    }
+                    
+                    document.getElementById('noPosts').classList.add('hidden');
+                    
+                    data.posts.forEach(post => {
+                        const postElement = createPostElement(post);
+                        postsContainer.appendChild(postElement);
+                    });
+                }
+            } catch (error) {
+                console.error('Postlarni yuklashda xatolik:', error);
+            }
+        }
+
+        function createPostElement(post) {
+            const postElement = document.createElement('div');
+            postElement.className = 'bg-white rounded-lg shadow-md overflow-hidden cursor-pointer';
+            postElement.addEventListener('click', () => {
+                window.location.href = `/?highlight=${post._id}`;
+            });
+            
+            let mediaHTML = '';
+            if (post.media) {
+                if (post.media.includes('.mp4') || post.media.includes('.webm') || post.media.includes('.ogg')) {
+                    mediaHTML = `<video src="${post.media}" controls class="w-full h-48 object-cover"></video>`;
+                } else {
+                    mediaHTML = `<img src="${post.media}" alt="Post media" class="w-full h-48 object-cover">`;
+                }
+            }
+            
+            let actionButtonsHTML = '';
+            if (isOwnProfile) {
+                actionButtonsHTML = `
+                    <div class="mt-2 flex justify-end space-x-2">
+                        <button class="text-blue-500 text-sm edit-post-btn" data-post-id="${post._id}">Tahrirlash</button>
+                        <button class="text-red-500 text-sm delete-post-btn" data-post-id="${post._id}">O'chirish</button>
+                    </div>
+                `;
+            }
+            
+            postElement.innerHTML = `
+                ${mediaHTML}
+                <div class="p-3">
+                    <p class="text-sm truncate">${post.content}</p>
+                    <div class="flex justify-between items-center mt-2 text-gray-500 text-sm">
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                            <span>${post.likes.length}</span>
+                        </div>
+                        <div class="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+                            </svg>
+                            <span>${post.comments.length}</span>
+                        </div>
+                    </div>
+                    ${actionButtonsHTML}
+                </div>
+            `;
+
+            // O'chirish tugmasi uchun event listener
+            const deleteBtn = postElement.querySelector('.delete-post-btn');
+            if (deleteBtn) {
+                deleteBtn.addEventListener('click', async function(e) {
+                    e.stopPropagation();
+                    const postId = this.getAttribute('data-post-id');
+                    const confirmDelete = confirm('Postni o\'chirishni istaysizmi?');
+                    
+                    if (confirmDelete) {
+                        try {
+                            const response = await fetch(`/posts/${postId}`, {
+                                method: 'DELETE',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                }
+                            });
+                            
+                            const data = await response.json();
+                            
+                            if (data.success) {
+                                postElement.remove();
+                                showMessage('Post muvaffaqiyatli o\'chirildi', 'success');
+                                
+                                // Agar barcha postlar o'chirilgan bo'lsa
+                                const remainingPosts = document.querySelectorAll('#userPosts > div').length;
+                                if (remainingPosts === 0) {
+                                    document.getElementById('noPosts').classList.remove('hidden');
+                                }
+                            } else {
+                                showMessage('Postni o\'chirishda xatolik: ' + data.message, 'error');
+                            }
+                        } catch (error) {
+                            console.error('Xatolik:', error);
+                            showMessage('Postni o\'chirishda xatolik', 'error');
+                        }
+                    }
+                });
+            }
+
+            // Tahrirlash tugmasi uchun event listener
+            const editBtn = postElement.querySelector('.edit-post-btn');
+            if (editBtn) {
+                editBtn.addEventListener('click', function(e) {
+                    e.stopPropagation();
+                    const postId = this.getAttribute('data-post-id');
+                    openEditModal(postId, post.content);
+                });
+            }
+            
+            return postElement;
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.classList.remove('hidden');
+            document.getElementById('loading').classList.add('hidden');
+        }
+        
+        function showMessage(message, type) {
+            alert(message); // Siz buni o'zingizning chiroyli xabar ko'rsatish tizimingiz bilan almashtirishingiz mumkin
+        }
+    </script>
+</body>
+</html>
