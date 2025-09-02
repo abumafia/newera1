@@ -113,8 +113,8 @@ app.use(session({
   }
 }));
 app.use(cors({
-  origin: "*",   // vaqtincha hammani ruxsat berish
-  methods: "GET,POST,PUT,DELETE",
+  origin: ["https://newera-uz.netlify.app"], // faqat Netlify frontend
+  methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
