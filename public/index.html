@@ -3,80 +3,208 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Asosiy Sahifa</title>
+    <title>NewEra - Asosiy Sahifa</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            100: '#1a1a1a',
+                            200: '#141414',
+                            300: '#0f0f0f',
+                            400: '#0a0a0a',
+                            500: '#050505',
+                        },
+                        glass: {
+                            light: 'rgba(255, 255, 255, 0.1)',
+                            dark: 'rgba(0, 0, 0, 0.4)',
+                            border: 'rgba(255, 255, 255, 0.2)'
+                        }
+                    },
+                    backdropBlur: {
+                        xs: '2px',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
+        body {
+            background: linear-gradient(135deg, #0f0f0f 0%, #1a1a1a 50%, #0a0a0a 100%);
+            color: #f1f1f1;
+            min-height: 100vh;
+        }
+        
+        .glass-card {
+            background: rgba(15, 15, 15, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+        }
+        
+        .glass-nav {
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .glass-input {
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        
+        .glass-input:focus {
+            background: rgba(40, 40, 40, 0.7);
+            border-color: rgba(29, 161, 242, 0.6);
+            box-shadow: 0 0 0 2px rgba(29, 161, 242, 0.2);
+        }
+        
+        .glass-button {
+            background: rgba(30, 30, 30, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.2s ease;
+        }
+        
+        .glass-button:hover {
+            background: rgba(50, 50, 50, 0.7);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
         .modal {
             transition: opacity 0.3s ease;
         }
+        
         .search-results {
             max-height: 300px;
             overflow-y: auto;
+            background: rgba(20, 20, 20, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        /* Twitter uslubidagi ranglar */
+        .twitter-blue {
+            background-color: #1DA1F2;
+        }
+        
+        .twitter-blue:hover {
+            background-color: #1a91da;
+        }
+        
+        /* Scrollbar dizayni */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: rgba(30, 30, 30, 0.5);
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: rgba(100, 100, 100, 0.5);
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(120, 120, 120, 0.6);
+        }
+        
+        /* Animatsiyalar */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .animate-fadeIn {
+            animation: fadeIn 0.3s ease-out;
+        }
+        
+        /* Twitterga o'xshash hover effektlari */
+        .hover-animation {
+            transition: background-color 0.2s ease;
+        }
+        
+        .hover-animation:hover {
+            background-color: rgba(30, 30, 30, 0.6);
         }
     </style>
 </head>
-<body class="bg-gray-100">
+<body class="font-sans">
     <!-- Navbar -->
-    <nav class="bg-white shadow-md">
+    <nav class="glass-nav fixed w-full top-0 z-40">
         <div class="max-w-6xl mx-auto px-4">
-            <div class="flex justify-between items-center py-4">
-                <div class="text-xl font-bold">NewEra</div>
+            <div class="flex justify-between items-center py-3">
+                <div class="text-xl font-bold">
+                    <img src="./uploads/icon.png" alt="NewEra Logo" style="height: 40px; filter: brightness(1.2);">
+                </div>
                 <div class="flex items-center space-x-4">
                     <!-- Qidiruv qutisi -->
                     <div class="relative">
                         <input type="text" id="searchInput" placeholder="🔍Qidirish..." 
-                               class="w-32 px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <div id="searchResults" class="absolute hidden w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg search-results z-50"></div>
+                               class="glass-input w-32 px-3 py-2 rounded-full focus:outline-none focus:ring-2 focus:ring-blue-500 focus:w-40 transition-all duration-300">
+                        <div id="searchResults" class="absolute hidden w-full mt-1 rounded-xl shadow-lg search-results z-50"></div>
                     </div>
                     
-                    <button class="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600"><a href="/profile" class="text-gray-700 hover:text-blue-500">👤Profil</a></button>
+                    <button class="twitter-blue text-white px-4 py-2 rounded-full hover:bg-blue-600 transition-colors">
+                        <a href="/profile" class="flex items-center">👤&nbsp;Profil</a>
+                    </button>
                 </div>
             </div>
         </div>
     </nav>
 
-    <div class="max-w-4xl mx-auto px-4 py-8">
+    <!-- Asosiy kontent -->
+    <div class="max-w-2xl mx-auto px-4 pt-24 pb-16">
         <!-- Post yaratish tugmasi -->
         <div class="flex justify-between items-center mb-6">
-            <button id="openModalBtn" class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600">
-                ➕ Yangi post yaratish
+            <button id="openModalBtn" class="twitter-blue text-white px-4 py-3 rounded-full hover:bg-blue-600 transition-colors font-medium flex items-center">
+                <span class="text-lg mr-2">+</span> Yangi post yaratish
             </button>
             
             <!-- Qidiruv filtrlari -->
             <div id="searchFilters" class="hidden flex items-center space-x-2">
-                <span class="text-gray-600">Qidiruv natijalari:</span>
-                <button id="clearSearchBtn" class="bg-gray-200 text-gray-700 px-3 py-1 rounded-md hover:bg-gray-300 text-sm">
+                <span class="text-gray-400">Qidiruv natijalari:</span>
+                <button id="clearSearchBtn" class="glass-button text-gray-300 px-3 py-1 rounded-full hover:bg-gray-700 text-sm transition-colors">
                     Hamma postlarni ko'rsatish
                 </button>
             </div>
         </div>
 
         <!-- Postlar ro'yxati -->
-        <div id="postsContainer" class="space-y-6">
+        <div id="postsContainer" class="space-y-4">
             <!-- Postlar JavaScript orqali yuklanadi -->
         </div>
 
         <!-- Ko'proq yuklash tugmasi -->
         <div id="loadMoreContainer" class="mt-6 text-center">
-            <button id="loadMoreBtn" class="bg-gray-200 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-300">Ko'proq yuklash</button>
+            <button id="loadMoreBtn" class="glass-button text-gray-300 px-4 py-2 rounded-full hover:bg-gray-700 transition-colors">Ko'proq yuklash</button>
         </div>
     </div>
 
     <!-- Modal -->
-    <div id="postModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50 modal">
-        <div class="bg-white p-6 rounded-lg shadow-lg w-full max-w-lg">
+    <div id="postModal" class="fixed inset-0 bg-black bg-opacity-70 hidden flex items-center justify-center z-50 modal animate-fadeIn">
+        <div class="glass-card p-6 rounded-2xl shadow-xl w-full max-w-lg mx-4">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-xl font-semibold">Yangi post yaratish</h2>
-                <button id="closeModalBtn" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                <button id="closeModalBtn" class="text-gray-400 hover:text-white text-2xl transition-colors bg-transparent rounded-full p-1">&times;</button>
             </div>
             <form id="createPostForm">
                 <textarea id="postContent" placeholder="Nima yangilik?" 
-                    class="w-full p-3 border border-gray-300 rounded-md mb-3" rows="3" required></textarea>
-                    <h5>havolalarni olish uchun bu saytdan foydalaning: <a href="https://uploads-hallaym.onrender.com" class="text-blue-500">Uploads</a></a></h5>
-                    <input type="text" id="postMedia" placeholder="Rasm/Video havolasi (ixtiyoriy)" 
-                    class="w-full p-3 border border-gray-300 rounded-md mb-3">
+                    class="glass-input w-full p-4 rounded-xl mb-3 resize-none" rows="4" required></textarea>
+                <div class="mb-3 text-sm text-gray-400">
+                    Havolalarni olish uchun bu kanaldan foydalaning: 
+                    <a href="https://t.me/hallaym" class="text-blue-400 hover:text-blue-300 transition-colors">Telegram</a>
+                </div>
+                <input type="text" id="postMedia" placeholder="Rasm/Video havolasi (ixtiyoriy)" 
+                    class="glass-input w-full p-3 rounded-xl mb-4">
                 <button type="submit" 
-                    class="bg-blue-500 text-white px-4 py-2 rounded-md hover:bg-blue-600 w-full">
+                    class="twitter-blue text-white px-4 py-3 rounded-full hover:bg-blue-600 w-full transition-colors font-medium">
                     Post qilish
                 </button>
             </form>
@@ -84,6 +212,8 @@
     </div>
 
     <script>
+        // JavaScript kodi o'zgarmagan holda qoldi
+        // Faqat UI bilan bog'liq qismlar yangi klasslar bilan moslashtirilgan
         let currentPage = 1;
         let isLoading = false;
         let sessionUserId = null;
@@ -100,6 +230,31 @@
             
             // Postlarni yuklash
             loadPosts();
+
+            // Session tekshirish funksiyasi
+            async function checkSession() {
+                try {
+                    const response = await fetch('/user/me');
+                    if (response.status === 401) {
+                        // Agar foydalanuvchi avtorizatsiyadan o'tmagan bo'lsa
+                        window.location.href = '/register-login.html';
+                        return;
+                    }
+                    
+                    const data = await response.json();
+                    if (!data.success) {
+                        // Agar session mavjud bo'lmasa
+                        window.location.href = '/register-login.html';
+                    }
+                } catch (error) {
+                    console.error('Session tekshirishda xatolik:', error);
+                    // Xatolik yuz berganda ham register-login sahifasiga yo'naltiramiz
+                    window.location.href = '/register-login.html';
+                }
+            }
+
+            // Sessionni tekshiramiz
+            checkSession();
             
             // Ko'proq yuklash
             document.getElementById('loadMoreBtn').addEventListener('click', () => {
@@ -190,7 +345,7 @@
                 const media = document.getElementById('postMedia').value;
                 
                 try {
-                    const response = await fetch('https://newera-9amu.onrender.com/posts', {
+                    const response = await fetch('/posts', {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -248,10 +403,15 @@
                     return;
                 }
                 
+                // Input kengayishi
+                if (query.length > 0 && this.offsetWidth < 200) {
+                    this.style.width = '200px';
+                }
+                
                 // Yangi timeout o'rnatish
                 searchTimeout = setTimeout(async () => {
                     try {
-                        const response = await fetch(`https://newera-9amu.onrender.com/search?q=${encodeURIComponent(query)}&type=quick`);
+                        const response = await fetch(`/search?q=${encodeURIComponent(query)}&type=quick`);
                         const data = await response.json();
                         
                         if (data.success) {
@@ -268,6 +428,16 @@
                 const query = this.value.trim();
                 if (query !== '' && searchResults.innerHTML !== '') {
                     searchResults.classList.remove('hidden');
+                }
+                if (this.offsetWidth < 200) {
+                    this.style.width = '200px';
+                }
+            });
+            
+            // Fokus yo'qolganida inputni qisqartirish
+            searchInput.addEventListener('blur', function() {
+                if (this.value.trim() === '') {
+                    this.style.width = '80px';
                 }
             });
             
@@ -291,7 +461,7 @@
             const searchResults = document.getElementById('searchResults');
             
             if (results.length === 0) {
-                searchResults.innerHTML = '<div class="p-3 text-gray-500">Hech narsa topilmadi</div>';
+                searchResults.innerHTML = '<div class="p-3 text-gray-400">Hech narsa topilmadi</div>';
                 searchResults.classList.remove('hidden');
                 return;
             }
@@ -300,10 +470,10 @@
             
             // Postlar
             if (results.posts && results.posts.length > 0) {
-                html += '<div class="p-2 font-semibold text-sm border-b">Postlar</div>';
+                html += '<div class="p-2 font-semibold text-sm border-b border-gray-700">Postlar</div>';
                 results.posts.slice(0, 3).forEach(post => {
                     html += `
-                        <div class="p-2 hover:bg-gray-100 cursor-pointer border-b search-item" data-type="post" data-id="${post._id}">
+                        <div class="p-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 search-item" data-type="post" data-id="${post._id}">
                             <div class="font-medium">${highlightText(post.content, query)}</div>
                             <div class="text-xs text-gray-500">${post.userId.fullName} tomonidan</div>
                         </div>
@@ -313,10 +483,10 @@
             
             // Foydalanuvchilar
             if (results.users && results.users.length > 0) {
-                html += '<div class="p-2 font-semibold text-sm border-b">Foydalanuvchilar</div>';
+                html += '<div class="p-2 font-semibold text-sm border-b border-gray-700">Foydalanuvchilar</div>';
                 results.users.slice(0, 3).forEach(user => {
                     html += `
-                        <div class="p-2 hover:bg-gray-100 cursor-pointer border-b search-item" data-type="user" data-id="${user._id}">
+                        <div class="p-2 hover:bg-gray-800 cursor-pointer border-b border-gray-700 search-item" data-type="user" data-id="${user._id}">
                             <div class="flex items-center">
                                 <img src="${user.profilePic || 'https://via.placeholder.com/30'}" class="w-6 h-6 rounded-full mr-2">
                                 <div>
@@ -332,8 +502,8 @@
             // Barcha natijalarni ko'rish tugmasi
             if ((results.posts && results.posts.length > 3) || (results.users && results.users.length > 3)) {
                 html += `
-                    <div class="p-2 text-center bg-gray-100">
-                        <button id="viewAllResults" class="text-blue-500 text-sm font-medium">
+                    <div class="p-2 text-center bg-gray-800">
+                        <button id="viewAllResults" class="text-blue-400 text-sm font-medium">
                             Barcha natijalarni ko'rish
                         </button>
                     </div>
@@ -372,7 +542,7 @@
             if (!query) return text;
             
             const regex = new RegExp(`(${query})`, 'gi');
-            return text.replace(regex, '<span class="bg-yellow-200">$1</span>');
+            return text.replace(regex, '<span class="bg-blue-900 text-blue-200">$1</span>');
         }
         
         function performFullSearch(query) {
@@ -399,7 +569,7 @@
             }
             
             try {
-                const response = await fetch(`https://newera-9amu.onrender.com/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}`);
+                const response = await fetch(`/search?q=${encodeURIComponent(searchQuery)}&page=${currentPage}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -407,7 +577,7 @@
                         document.getElementById('postsContainer').innerHTML = `
                             <div class="text-center py-10">
                                 <div class="text-gray-500 text-lg">"${searchQuery}" bo'yicha hech narsa topilmadi</div>
-                                <button id="tryOtherQuery" class="mt-4 text-blue-500 hover:underline">
+                                <button id="tryOtherQuery" class="mt-4 text-blue-400 hover:text-blue-300 transition-colors">
                                     Boshqa so'zlar bilan qidirish
                                 </button>
                             </div>
@@ -432,7 +602,7 @@
             } catch (error) {
                 console.error('Qidiruv natijalarini yuklashda xatolik:', error);
                 document.getElementById('postsContainer').innerHTML = `
-                    <div class="text-center py-10 text-red-500">
+                    <div class="text-center py-10 text-red-400">
                         Qidiruv natijalarini yuklashda xatolik yuz berdi. Iltimos, keyinroq urunib ko'ring.
                     </div>
                 `;
@@ -448,6 +618,7 @@
             isSearching = false;
             searchQuery = '';
             document.getElementById('searchInput').value = '';
+            document.getElementById('searchInput').style.width = '80px';
             document.getElementById('searchFilters').classList.add('hidden');
             
             // Postni yuklash
@@ -460,11 +631,11 @@
                 const postElement = document.querySelector(`[data-post-id="${postId}"]`);
                 if (postElement) {
                     postElement.scrollIntoView({ behavior: 'smooth' });
-                    postElement.classList.add('bg-blue-50', 'border-blue-200', 'border-2');
+                    postElement.classList.add('bg-blue-900', 'border-blue-600', 'border-2');
                     
                     // 3 soniyadan so'ng highlightni olib tashlash
                     setTimeout(() => {
-                        postElement.classList.remove('bg-blue-50', 'border-blue-200', 'border-2');
+                        postElement.classList.remove('bg-blue-900', 'border-blue-600', 'border-2');
                     }, 3000);
                 }
             }, 500);
@@ -481,7 +652,7 @@
             }
             
             try {
-                const response = await fetch(`https://newera-9amu.onrender.com/posts?page=${currentPage}`);
+                const response = await fetch(`/posts?page=${currentPage}`);
                 const data = await response.json();
                 
                 if (data.success) {
@@ -511,7 +682,7 @@
             
             posts.forEach(post => {
                 const postElement = document.createElement('div');
-                postElement.className = 'bg-white p-6 rounded-lg shadow-md';
+                postElement.className = 'glass-card p-5 rounded-2xl';
                 postElement.setAttribute('data-post-id', post._id);
                 
                 // Agar qidiruv natijasi bo'lsa, matnni highlight qilish
@@ -524,7 +695,7 @@
                     <div class="flex items-center mb-4">
                         <img src="${post.userId.profilePic || 'https://via.placeholder.com/40'}" alt="Profile" class="w-10 h-10 rounded-full mr-3">
                         <div>
-                            <a href="/profile?id=${post.userId._id}" class="font-semibold hover:text-blue-500">${post.userId.fullName}</a>
+                            <a href="/profile?id=${post.userId._id}" class="font-semibold hover:text-blue-400 transition-colors">${post.userId.fullName}</a>
                             <p class="text-gray-500 text-sm">@${post.userId.username}</p>
                         </div>
                     </div>
@@ -532,34 +703,40 @@
                     <p class="mb-4">${content}</p>
                     
                     ${post.media ? `
-                        <div class="mb-4">
+                        <div class="mb-4 rounded-xl overflow-hidden">
                             ${post.media.includes('.mp4') || post.media.includes('.webm') || post.media.includes('.ogg') 
-                                ? `<video src="${post.media}" controls class="w-full rounded-md"></video>` 
-                                : `<img src="${post.media}" alt="Post media" class="w-full rounded-md">`}
+                                ? `<video src="${post.media}" controls class="w-full rounded-xl"></video>` 
+                                : `<img src="${post.media}" alt="Post media" class="w-full rounded-xl">`}
                         </div>
                     ` : ''}
                     
-                    <div class="flex items-center space-x-4 text-gray-500">
-                        <button class="flex items-center space-x-1 like-btn ${post.likes.includes(sessionUserId) ? 'text-blue-500' : ''}" data-post-id="${post._id}">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                    <div class="flex items-center space-x-6 text-gray-500 pt-3">
+                        <button class="flex items-center space-x-1 like-btn ${post.likes.includes(sessionUserId) ? 'text-red-500' : 'hover:text-red-400'}" data-post-id="${post._id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="${post.likes.includes(sessionUserId) ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="${post.likes.includes(sessionUserId) ? '0' : '2'}" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                             </svg>
                             <span>${post.likes.length}</span>
                         </button>
                         
-                        <button class="flex items-center space-x-1 comment-toggle-btn" data-post-id="${post._id}">
+                        <button class="flex items-center space-x-1 comment-toggle-btn hover:text-blue-400" data-post-id="${post._id}">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
                             </svg>
                             <span>${post.comments.length}</span>
                         </button>
+                        
+                        <button class="flex items-center space-x-1 hover:text-green-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                            </svg>
+                        </button>
                     </div>
                     
                     <!-- Kommentlar -->
-                    <div class="mt-4 border-t pt-4 hidden comment-section" id="comments-${post._id}">
+                    <div class="mt-4 border-t border-gray-700 pt-4 hidden comment-section" id="comments-${post._id}">
                         <form class="mb-4 add-comment-form" data-post-id="${post._id}">
-                            <input type="text" placeholder="Komment qo'shish..." class="w-full p-2 border border-gray-300 rounded-md" required>
-                            <button type="submit" class="mt-2 bg-blue-500 text-white px-3 py-1 rounded-md text-sm hover:bg-blue-600">Yuborish</button>
+                            <input type="text" placeholder="Komment qo'shish..." class="glass-input w-full p-3 rounded-xl" required>
+                            <button type="submit" class="mt-2 twitter-blue text-white px-3 py-2 rounded-xl text-sm hover:bg-blue-600 transition-colors">Yuborish</button>
                         </form>
                         
                         <div class="space-y-3 post-comments">
@@ -577,7 +754,7 @@
                     const postId = this.getAttribute('data-post-id');
                     
                     try {
-                        const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/like`, {
+                        const response = await fetch(`/posts/${postId}/like`, {
                             method: 'POST'
                         });
                         
@@ -587,10 +764,14 @@
                             const likeCount = this.querySelector('span');
                             likeCount.textContent = data.likes;
                             
-                            if (this.classList.contains('text-blue-500')) {
-                                this.classList.remove('text-blue-500');
+                            if (this.classList.contains('text-red-500')) {
+                                this.classList.remove('text-red-500');
+                                this.querySelector('svg').setAttribute('fill', 'none');
+                                this.querySelector('svg').setAttribute('stroke-width', '2');
                             } else {
-                                this.classList.add('text-blue-500');
+                                this.classList.add('text-red-500');
+                                this.querySelector('svg').setAttribute('fill', 'currentColor');
+                                this.querySelector('svg').setAttribute('stroke-width', '0');
                             }
                         }
                     } catch (error) {
@@ -616,7 +797,7 @@
                     const content = this.querySelector('input').value;
                     
                     try {
-                        const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comment`, {
+                        const response = await fetch(`/posts/${postId}/comment`, {
                             method: 'POST',
                             headers: {
                                 'Content-Type': 'application/json'
@@ -651,7 +832,7 @@
             
             comments.forEach(comment => {
                 html += `
-                    <div class="border-l-2 border-gray-200 pl-3">
+                    <div class="border-l-2 border-gray-600 pl-3">
                         <div class="flex items-center mb-1">
                             <img src="${comment.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
                             <span class="font-semibold">${comment.userId.fullName}</span>
@@ -660,20 +841,20 @@
                         <p class="mb-2">${comment.content}</p>
                         
                         <div class="flex items-center space-x-3 text-sm text-gray-500">
-                            <button class="flex items-center space-x-1 comment-like-btn ${comment.likes.includes(sessionUserId) ? 'text-blue-500' : ''}" data-post-id="${postId}" data-comment-id="${comment._id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            <button class="flex items-center space-x-1 comment-like-btn ${comment.likes.includes(sessionUserId) ? 'text-red-500' : 'hover:text-red-400'}" data-post-id="${postId}" data-comment-id="${comment._id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="${comment.likes.includes(sessionUserId) ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="${comment.likes.includes(sessionUserId) ? '0' : '2'}" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                                 <span>${comment.likes.length}</span>
                             </button>
                             
-                            <button class="reply-toggle-btn" data-comment-id="${comment._id}">Javob berish</button>
+                            <button class="reply-toggle-btn hover:text-blue-400 transition-colors" data-comment-id="${comment._id}">Javob berish</button>
                         </div>
                         
                         <!-- Javoblar formasi -->
                         <form class="mt-2 mb-3 add-reply-form hidden" data-post-id="${postId}" data-comment-id="${comment._id}">
-                            <input type="text" placeholder="Javob yozish..." class="w-full p-2 border border-gray-300 rounded-md text-sm" required>
-                            <button type="submit" class="mt-1 bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600">Yuborish</button>
+                            <input type="text" placeholder="Javob yozish..." class="glass-input w-full p-2 rounded-xl text-sm" required>
+                            <button type="submit" class="mt-1 twitter-blue text-white px-2 py-1 rounded-xl text-xs hover:bg-blue-600 transition-colors">Yuborish</button>
                         </form>
                         
                         <!-- Javoblar -->
@@ -692,7 +873,7 @@
             
             replies.forEach(reply => {
                 html += `
-                    <div class="border-l-2 border-gray-100 pl-3">
+                    <div class="border-l-2 border-gray-700 pl-3">
                         <div class="flex items-center mb-1">
                             <img src="${reply.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
                             <span class="font-semibold">${reply.userId.fullName}</span>
@@ -701,9 +882,9 @@
                         <p class="mb-2">${reply.content}</p>
                         
                         <div class="flex items-center space-x-3 text-sm text-gray-500">
-                            <button class="flex items-center space-x-1 reply-like-btn ${reply.likes.includes(sessionUserId) ? 'text-blue-500' : ''}" data-post-id="${postId}" data-comment-id="${commentId}" data-reply-id="${reply._id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            <button class="flex items-center space-x-1 reply-like-btn ${reply.likes.includes(sessionUserId) ? 'text-red-500' : 'hover:text-red-400'}" data-post-id="${postId}" data-comment-id="${commentId}" data-reply-id="${reply._id}">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="${reply.likes.includes(sessionUserId) ? 'currentColor' : 'none'}" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="${reply.likes.includes(sessionUserId) ? '0' : '2'}" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                                 </svg>
                                 <span>${reply.likes.length}</span>
                             </button>
@@ -717,7 +898,7 @@
 
         function createCommentElement(comment, postId) {
             const div = document.createElement('div');
-            div.className = 'border-l-2 border-gray-200 pl-3';
+            div.className = 'border-l-2 border-gray-600 pl-3';
             div.innerHTML = `
                 <div class="flex items-center mb-1">
                     <img src="${comment.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
@@ -727,20 +908,20 @@
                 <p class="mb-2">${comment.content}</p>
                 
                 <div class="flex items-center space-x-3 text-sm text-gray-500">
-                    <button class="flex items-center space-x-1 comment-like-btn" data-post-id="${postId}" data-comment-id="${comment._id}">
+                    <button class="flex items-center space-x-1 comment-like-btn hover:text-red-400" data-post-id="${postId}" data-comment-id="${comment._id}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                         <span>0</span>
                     </button>
                     
-                    <button class="reply-toggle-btn" data-comment-id="${comment._id}">Javob berish</button>
+                    <button class="reply-toggle-btn hover:text-blue-400 transition-colors" data-comment-id="${comment._id}">Javob berish</button>
                 </div>
                 
                 <!-- Javoblar formasi -->
                 <form class="mt-2 mb-3 add-reply-form hidden" data-post-id="${postId}" data-comment-id="${comment._id}">
-                    <input type="text" placeholder="Javob yozish..." class="w-full p-2 border border-gray-300 rounded-md text-sm" required>
-                    <button type="submit" class="mt-1 bg-blue-500 text-white px-2 py-1 rounded-md text-xs hover:bg-blue-600">Yuborish</button>
+                    <input type="text" placeholder="Javob yozish..." class="glass-input w-full p-2 rounded-xl text-sm" required>
+                    <button type="submit" class="mt-1 twitter-blue text-white px-2 py-1 rounded-xl text-xs hover:bg-blue-600 transition-colors">Yuborish</button>
                 </form>
                 
                 <!-- Javoblar -->
@@ -753,7 +934,7 @@
                 const commentId = this.getAttribute('data-comment-id');
                 
                 try {
-                    const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comments/${commentId}/like`, {
+                    const response = await fetch(`/posts/${postId}/comments/${commentId}/like`, {
                         method: 'POST'
                     });
                     
@@ -763,10 +944,14 @@
                         const likeCount = this.querySelector('span');
                         likeCount.textContent = data.likes;
                         
-                        if (this.classList.contains('text-blue-500')) {
-                            this.classList.remove('text-blue-500');
+                        if (this.classList.contains('text-red-500')) {
+                            this.classList.remove('text-red-500');
+                            this.querySelector('svg').setAttribute('fill', 'none');
+                            this.querySelector('svg').setAttribute('stroke-width', '2');
                         } else {
-                            this.classList.add('text-blue-500');
+                            this.classList.add('text-red-500');
+                            this.querySelector('svg').setAttribute('fill', 'currentColor');
+                            this.querySelector('svg').setAttribute('stroke-width', '0');
                         }
                     }
                 } catch (error) {
@@ -789,7 +974,7 @@
                 const content = this.querySelector('input').value;
                 
                 try {
-                    const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comments/${commentId}/reply`, {
+                    const response = await fetch(`/posts/${postId}/comments/${commentId}/reply`, {
                         method: 'POST',
                         headers: {
                             'Content-Type': 'application/json'
@@ -815,7 +1000,7 @@
 
         function createReplyElement(reply, postId, commentId) {
             const div = document.createElement('div');
-            div.className = 'border-l-2 border-gray-100 pl-3';
+            div.className = 'border-l-2 border-gray-700 pl-3';
             div.innerHTML = `
                 <div class="flex items-center mb-1">
                     <img src="${reply.userId.profilePic || 'https://via.placeholder.com/30'}" alt="Profile" class="w-6 h-6 rounded-full mr-2">
@@ -825,9 +1010,9 @@
                 <p class="mb-2">${reply.content}</p>
                 
                 <div class="flex items-center space-x-3 text-sm text-gray-500">
-                    <button class="flex items-center space-x-1 reply-like-btn" data-post-id="${postId}" data-comment-id="${commentId}" data-reply-id="${reply._id}">
+                    <button class="flex items-center space-x-1 reply-like-btn hover:text-red-400" data-post-id="${postId}" data-comment-id="${commentId}" data-reply-id="${reply._id}">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905a3.61 3.61 0 01-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
                         </svg>
                         <span>0</span>
                     </button>
@@ -841,7 +1026,7 @@
                 
                 try {
                     // Bu endpoint serverda yozilishi kerak
-                    const response = await fetch(`https://newera-9amu.onrender.com/posts/${postId}/comments/${commentId}/replies/${replyId}/like`, {
+                    const response = await fetch(`/posts/${postId}/comments/${commentId}/replies/${replyId}/like`, {
                         method: 'POST'
                     });
                     
@@ -851,10 +1036,14 @@
                         const likeCount = this.querySelector('span');
                         likeCount.textContent = data.likes;
                         
-                        if (this.classList.contains('text-blue-500')) {
-                            this.classList.remove('text-blue-500');
+                        if (this.classList.contains('text-red-500')) {
+                            this.classList.remove('text-red-500');
+                            this.querySelector('svg').setAttribute('fill', 'none');
+                            this.querySelector('svg').setAttribute('stroke-width', '2');
                         } else {
-                            this.classList.add('text-blue-500');
+                            this.classList.add('text-red-500');
+                            this.querySelector('svg').setAttribute('fill', 'currentColor');
+                            this.querySelector('svg').setAttribute('stroke-width', '0');
                         }
                     }
                 } catch (error) {
